@@ -10,12 +10,12 @@
  * ──────────────────────────────────────────────────
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
 import { useScrollReveal } from '../hooks/useAnimations';
-import { CONTACT_INFO, SOCIAL_LINKS } from '../data/portfolioData';
-import { EMAILJS_CONFIG, isEmailJSConfigured } from '../config/emailjs';
+import { CONTACT_INFO } from '../data/portfolioData';
+import { EMAILJS_CONFIG, PUBLIC_CONTACT_EMAIL, isEmailJSConfigured } from '../config/emailjs';
 import Toast from './Toast';
 
 // ─── Icon Components ──────────────────────────────
@@ -51,16 +51,27 @@ const ICONS = {
 // ─── Validation ───────────────────────────────────
 function validate(data) {
   const errors = {};
-  if (!data.name.trim())    errors.name    = 'Name is required';
-  if (!data.email.trim())   errors.email   = 'Email is required';
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
-                            errors.email   = 'Enter a valid email address';
+  if (!data.name.trim()) errors.name = 'Full name is required';
+  else if (data.name.trim().length < 2) errors.name = 'Enter at least 2 characters';
+  else if (data.name.length > 100) errors.name = 'Use no more than 100 characters';
+  if (!data.email.trim()) errors.email = 'Email address is required';
+  else if (data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
+    errors.email = 'Enter a valid email address';
   if (!data.subject.trim()) errors.subject = 'Subject is required';
+  else if (data.subject.trim().length < 3) errors.subject = 'Enter at least 3 characters';
+  else if (data.subject.length > 200) errors.subject = 'Use no more than 200 characters';
   if (!data.message.trim()) errors.message = 'Message is required';
-  else if (data.message.trim().length < 20)
-                            errors.message = 'Message must be at least 20 characters';
+  else if (data.message.trim().length < 20) errors.message = 'Message must be at least 20 characters';
+  else if (data.message.length > 5000) errors.message = 'Use no more than 5,000 characters';
   return errors;
 }
+
+const CONTACT_EMAIL = PUBLIC_CONTACT_EMAIL || CONTACT_INFO.email;
+const CONTACT_SOCIAL_LINKS = [
+  { label: 'GitHub', href: CONTACT_INFO.githubUrl, icon: 'github' },
+  { label: 'LinkedIn', href: CONTACT_INFO.linkedinUrl, icon: 'linkedin' },
+  { label: 'Email', href: CONTACT_EMAIL ? `mailto:${CONTACT_EMAIL}` : null, icon: 'email' },
+].filter((link) => link.href);
 
 // ─── Copy Button ──────────────────────────────────
 function CopyButton({ text, onCopied }) {
@@ -79,6 +90,7 @@ function CopyButton({ text, onCopied }) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       title={copied ? 'Copied!' : 'Copy to clipboard'}
       aria-label={`Copy ${text}`}
@@ -107,16 +119,16 @@ const CONTACT_ITEMS = [
     icon: ICONS.phone,
     label: 'Phone',
     value: CONTACT_INFO.phone,
-    href: `tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`,
+    href: `tel:${CONTACT_INFO.phone?.replace(/\s/g, '') || ''}`,
     copyText: CONTACT_INFO.phone,
     external: false,
   },
   {
     icon: ICONS.email,
     label: 'Email',
-    value: CONTACT_INFO.email,
-    href: `mailto:${CONTACT_INFO.email}`,
-    copyText: CONTACT_INFO.email,
+    value: CONTACT_EMAIL,
+    href: CONTACT_EMAIL ? `mailto:${CONTACT_EMAIL}` : null,
+    copyText: CONTACT_EMAIL,
     external: false,
   },
   {
@@ -135,13 +147,13 @@ const CONTACT_ITEMS = [
     copyText: CONTACT_INFO.github,
     external: true,
   },
-];
+].filter((item) => item.value && item.href);
 
 // ─── Field component ──────────────────────────────
-function Field({ label, error, children }) {
+function Field({ name, label, error, children }) {
   return (
     <div>
-      <label style={{
+      <label htmlFor={`contact-${name}`} style={{
         display: 'block',
         fontSize: '0.78rem',
         fontWeight: '600',
@@ -153,7 +165,7 @@ function Field({ label, error, children }) {
       </label>
       {children}
       {error && (
-        <p role="alert" style={{ color: '#f87171', fontSize: '0.72rem', marginTop: '0.3rem' }}>
+        <p id={`contact-${name}-error`} role="alert" style={{ color: '#f87171', fontSize: '0.72rem', marginTop: '0.3rem' }}>
           {error}
         </p>
       )}
@@ -168,7 +180,17 @@ export default function Contact() {
   // Form state
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors,   setErrors]   = useState({});
-  const [status,   setStatus]   = useState('idle'); // idle | sending | success | error
+  const [status, setStatus] = useState('idle'); // idle | sending | success | error
+  const [formError, setFormError] = useState('');
+  const [submittedName, setSubmittedName] = useState('');
+  const submissionRef = useRef(false);
+  const honeypotRef = useRef(null);
+  const successRef = useRef(null);
+  const configured = isEmailJSConfigured();
+
+  useEffect(() => {
+    if (status === 'success') successRef.current?.focus();
+  }, [status]);
 
   // Toast state
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -182,67 +204,92 @@ export default function Contact() {
   }, []);
 
   // Handle copy-to-clipboard toast
-  const handleCopied = useCallback((text) => {
-    showToast(`"${text}" copied to clipboard!`, 'info');
+  const handleCopied = useCallback(() => {
+    showToast('Copied to clipboard.', 'info');
   }, [showToast]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((p) => ({ ...p, [name]: value }));
-    if (errors[name]) setErrors((p) => ({ ...p, [name]: '' }));
+    setFormData((previous) => ({ ...previous, [name]: value }));
+    if (errors[name]) setErrors((previous) => ({ ...previous, [name]: '' }));
+    if (status === 'error') setStatus('idle');
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const fieldError = validate({ ...formData, [name]: value })[name];
+    setErrors((previous) => ({ ...previous, [name]: fieldError || '' }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submissionRef.current) return;
 
-    // Validate
-    const errs = validate(formData);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    const fieldErrors = validate(formData);
+    setErrors(fieldErrors);
+    if (Object.keys(fieldErrors).length) {
+      e.currentTarget.querySelector(`[name="${Object.keys(fieldErrors)[0]}"]`)?.focus();
+      return;
+    }
+    if (honeypotRef.current?.value) {
+      setFormError('Unable to submit this form. Please contact me by email.');
+      setStatus('error');
+      return;
+    }
+    if (!configured) {
+      setFormError('Message delivery is currently unavailable. Please contact me by email.');
+      setStatus('error');
+      return;
+    }
 
+    const message = {
+      from_name: formData.name.trim(),
+      from_email: formData.email.trim(),
+      subject: formData.subject.trim(),
+      message: formData.message.trim(),
+      reply_to: formData.email.trim(),
+    };
+    submissionRef.current = true;
+    setFormError('');
     setStatus('sending');
 
     try {
-      if (isEmailJSConfigured()) {
-        // ── Real EmailJS send ──────────────────────
-        // Template variables must exactly match your EmailJS template:
-        //   {{name}}, {{email}}, {{subject}}, {{message}}
-        await emailjs.send(
-          EMAILJS_CONFIG.serviceId,
-          EMAILJS_CONFIG.templateId,
-          {
-            name:     formData.name,
-            email:    formData.email,
-            subject:  formData.subject,
-            message:  formData.message,
-            reply_to: formData.email,
-          },
-          { publicKey: EMAILJS_CONFIG.publicKey }
-        );
-      } else {
-        // ── Demo mode (no credentials configured) ──
-        // Simulate network delay for UI preview
-        await new Promise((r) => setTimeout(r, 1500));
-        console.info(
-          '[Contact Form] EmailJS not configured. ' +
-          'Add VITE_EMAILJS_* variables to your .env file. ' +
-          'See .env.example for instructions.'
-        );
+      // The recipient is fixed in the EmailJS template, not supplied by visitors.
+      const response = await emailjs.send(
+        EMAILJS_CONFIG.serviceId,
+        EMAILJS_CONFIG.templateId,
+        message,
+        {
+          publicKey: EMAILJS_CONFIG.publicKey,
+          limitRate: { id: 'portfolio-contact', throttle: 10000 },
+        }
+      );
+      if (!response || !Number.isInteger(response.status) || response.status < 200 || response.status >= 300) {
+        throw new Error('The provider did not confirm submission.');
       }
-
-      setStatus('success');
+      setSubmittedName(message.from_name);
       setFormData({ name: '', email: '', subject: '', message: '' });
-      showToast('Message sent successfully!', 'success');
-      setTimeout(() => setStatus('idle'), 6000);
-
-    } catch (err) {
-      console.error('[EmailJS]', err);
+      setStatus('success');
+      // Keep the submission lock until the visitor chooses to start a new message.
+    } catch (error) {
+      submissionRef.current = false;
+      setFormError(error?.status === 429
+        ? 'Please wait a moment before sending another message.'
+        : 'Your message could not be submitted. Please try again or contact me by email.');
       setStatus('error');
-      showToast('Failed to send message. Please try again.', 'error');
-      setTimeout(() => setStatus('idle'), 5000);
     }
   };
 
+  const startAnotherMessage = () => {
+    submissionRef.current = false;
+    setStatus('idle');
+    setFormError('');
+    setSubmittedName('');
+    requestAnimationFrame(() => document.getElementById('contact-name')?.focus());
+  };
+
   const isSending = status === 'sending';
+  const isSubmitDisabled = isSending || !configured;
 
   return (
     <section id="contact" style={{ padding: '6rem 1.5rem', position: 'relative' }}>
@@ -276,8 +323,8 @@ export default function Contact() {
             lineHeight: '1.1',
             marginTop: '0.75rem',
           }}>
-            Let's{' '}
-            <span className="gradient-text">Connect</span>
+            Get In{' '}
+            <span className="gradient-text">Touch</span>
           </h2>
           <p style={{
             marginTop: '1rem',
@@ -286,14 +333,14 @@ export default function Contact() {
             maxWidth: '500px',
             margin: '1rem auto 0',
           }}>
-            Interested in AI/ML collaboration, internships, or just want to talk tech? I'd love to hear from you!
+            Have a question, an opportunity, or an interesting project in mind? Feel free to reach out. I'm always open to meaningful conversations and collaboration.
           </p>
         </div>
 
         {/* ── Two-column layout ── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
           gap: '3rem',
           alignItems: 'start',
         }}>
@@ -368,9 +415,7 @@ export default function Contact() {
                       color: 'var(--text-primary)',
                       textDecoration: 'none',
                       display: 'block',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      overflowWrap: 'anywhere',
                       transition: 'color 0.2s',
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-cyan)'}
@@ -397,11 +442,11 @@ export default function Contact() {
                 Find Me On
               </p>
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {SOCIAL_LINKS.map((link) => (
+                {CONTACT_SOCIAL_LINKS.map((link) => (
                   <a
                     key={link.label}
                     href={link.href}
-                    target="_blank"
+                    target={link.href.startsWith('http') ? '_blank' : undefined}
                     rel="noopener noreferrer"
                     className="social-link"
                     aria-label={link.label}
@@ -434,7 +479,7 @@ export default function Contact() {
                 animation: 'pulse-glow-green 2s ease-in-out infinite',
                 flexShrink: 0,
               }} />
-              Available for internships &amp; collaborations
+              Open to conversations &amp; collaboration
             </div>
           </div>
 
@@ -471,15 +516,16 @@ export default function Contact() {
                   >
                     ✅
                   </motion.div>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '0.5rem' }}>
+                  <h3 ref={successRef} tabIndex={-1} style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '0.5rem' }}>
                     Message Sent!
                   </h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                    Thanks for reaching out, <strong style={{ color: 'var(--text-primary)' }}>{formData.name || 'friend'}</strong>!<br />
-                    I'll get back to you within 24 hours.
+                    Thanks for reaching out, <strong style={{ color: 'var(--text-primary)' }}>{submittedName}</strong>!<br />
+                    Your message has been submitted successfully.
                   </p>
                   <button
-                    onClick={() => setStatus('idle')}
+                    onClick={startAnotherMessage}
+                    type="button"
                     className="btn-outline"
                     style={{ marginTop: '1.5rem', fontSize: '0.85rem', padding: '0.6rem 1.5rem' }}
                   >
@@ -489,29 +535,35 @@ export default function Contact() {
 
               ) : (
                 /* ── Form ── */
-                <form onSubmit={handleSubmit} noValidate aria-label="Contact form">
+                <form onSubmit={handleSubmit} noValidate aria-label="Contact form" aria-busy={isSending}>
                   <div style={{ marginBottom: '1.5rem' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                       Send a Message
                     </h3>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      I respond within 24 hours.
-                      {!isEmailJSConfigured() && (
-                        <span style={{ color: 'rgba(251,191,36,0.8)', marginLeft: '0.4rem' }}>
-                          (Demo mode – configure EmailJS to enable sending)
-                        </span>
-                      )}
+                      Use the form below to get in touch.
                     </p>
+                  </div>
+
+                  {!configured && (
+                    <p id="contact-service-status" className="contact-service-status">
+                      The contact form is currently unavailable. Please email me directly
+                      {CONTACT_EMAIL && <> at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></>}.
+                    </p>
+                  )}
+                  <div className="contact-honeypot" aria-hidden="true">
+                    <label htmlFor="contact-website">Leave this field empty</label>
+                    <input id="contact-website" name="website" type="text" ref={honeypotRef} autoComplete="off" tabIndex={-1} />
                   </div>
 
                   {/* Name + Email row */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))',
                     gap: '1rem',
                     marginBottom: '1rem',
                   }}>
-                    <Field label="Full Name" error={errors.name}>
+                    <Field name="name" label="Full Name" error={errors.name}>
                       <input
                         type="text"
                         name="name"
@@ -524,10 +576,15 @@ export default function Contact() {
                         disabled={isSending}
                         aria-required="true"
                         aria-invalid={Boolean(errors.name)}
+                        aria-describedby={errors.name ? 'contact-name-error' : undefined}
+                        onBlur={handleBlur}
+                        required
+                        maxLength={100}
+                        minLength={2}
                       />
                     </Field>
 
-                    <Field label="Email Address" error={errors.email}>
+                    <Field name="email" label="Email Address" error={errors.email}>
                       <input
                         type="email"
                         name="email"
@@ -540,13 +597,17 @@ export default function Contact() {
                         disabled={isSending}
                         aria-required="true"
                         aria-invalid={Boolean(errors.email)}
+                        aria-describedby={errors.email ? 'contact-email-error' : undefined}
+                        onBlur={handleBlur}
+                        required
+                        maxLength={254}
                       />
                     </Field>
                   </div>
 
                   {/* Subject */}
                   <div style={{ marginBottom: '1rem' }}>
-                    <Field label="Subject" error={errors.subject}>
+                    <Field name="subject" label="Subject" error={errors.subject}>
                       <input
                         type="text"
                         name="subject"
@@ -558,13 +619,18 @@ export default function Contact() {
                         disabled={isSending}
                         aria-required="true"
                         aria-invalid={Boolean(errors.subject)}
+                        aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
+                        onBlur={handleBlur}
+                        required
+                        maxLength={200}
+                        minLength={3}
                       />
                     </Field>
                   </div>
 
                   {/* Message */}
                   <div style={{ marginBottom: '1.5rem' }}>
-                    <Field label="Message" error={errors.message}>
+                    <Field name="message" label="Message" error={errors.message}>
                       <textarea
                         name="message"
                         id="contact-message"
@@ -577,36 +643,30 @@ export default function Contact() {
                         disabled={isSending}
                         aria-required="true"
                         aria-invalid={Boolean(errors.message)}
+                        aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                        onBlur={handleBlur}
+                        required
+                        maxLength={5000}
+                        minLength={20}
                       />
                     </Field>
                   </div>
 
-                  {/* Error banner */}
+                  {/* Provider failures never clear the visitor's input. */}
                   {status === 'error' && (
                     <motion.div
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
+                      className="contact-error-banner"
+                      role="alert"
                       style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        background: 'rgba(220,38,38,0.1)',
-                        border: '1px solid rgba(220,38,38,0.3)',
-                        color: '#f87171',
-                        fontSize: '0.83rem',
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
+                        padding: '0.75rem 1rem', borderRadius: '10px',
+                        background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)',
+                        color: '#f87171', fontSize: '0.83rem', marginBottom: '1rem',
                       }}
                     >
-                      <span>❌</span>
-                      Failed to send. Please email me directly at{' '}
-                      <a
-                        href={`mailto:${CONTACT_INFO.email}`}
-                        style={{ color: '#f87171', fontWeight: '700', textDecoration: 'underline' }}
-                      >
-                        {CONTACT_INFO.email}
-                      </a>
+                      {formError}
+                      {CONTACT_EMAIL && <> <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#f87171', fontWeight: '700', textDecoration: 'underline' }}>{CONTACT_EMAIL}</a></>}
                     </motion.div>
                   )}
 
@@ -618,12 +678,13 @@ export default function Contact() {
                       width: '100%',
                       justifyContent: 'center',
                       padding: '0.9rem',
-                      opacity: isSending ? 0.75 : 1,
-                      cursor: isSending ? 'not-allowed' : 'pointer',
+                      opacity: isSubmitDisabled ? 0.65 : 1,
+                      cursor: isSubmitDisabled ? 'not-allowed' : 'pointer',
                     }}
-                    whileHover={isSending ? {} : { scale: 1.02 }}
-                    whileTap={isSending ? {} : { scale: 0.98 }}
-                    disabled={isSending}
+                    whileHover={isSubmitDisabled ? {} : { scale: 1.02 }}
+                    whileTap={isSubmitDisabled ? {} : { scale: 0.98 }}
+                    disabled={isSubmitDisabled}
+                    aria-describedby={!configured ? 'contact-service-status' : undefined}
                     id="contact-submit-btn"
                     aria-busy={isSending}
                   >

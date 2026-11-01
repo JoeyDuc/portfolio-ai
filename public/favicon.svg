@@ -1,10 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">MAD — Mai Anh Duc</title>
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3b82f6"/>
-      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    <linearGradient id="chip" x1="4" y1="12" x2="60" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset=".5" stop-color="#2563ff"/>
+      <stop offset="1" stop-color="#a078ff"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="20" fill="url(#g)"/>
-  <text x="50" y="68" font-size="55" font-weight="900" text-anchor="middle" fill="white" font-family="Arial, sans-serif">A</text>
+  <rect width="64" height="64" rx="12" fill="#0b1120"/>
+  <path d="M20 4v8m12-8v8m12-8v8M20 52v8m12-8v8m12-8v8M0 20h4m-4 12h4m-4 12h4M60 20h4m-4 12h4m-4 12h4" fill="none" stroke="url(#chip)" stroke-width="4"/>
+  <rect x="4" y="12" width="56" height="40" rx="6" fill="#101d36" stroke="url(#chip)" stroke-width="4"/>
+  <path fill="#f1f9ff" fill-rule="evenodd" d="M8 44V20h4l4 8 4-8h4v24h-4V30l-4 8-4-8v14Zm20 0V24l4-4h4l4 4v20h-4v-8h-4v8Zm4-12h4v-6l-2-2-2 2Zm12-12h8l4 4v16l-4 4h-8Zm4 4v16h2l2-2V26l-2-2Z"/>
 </svg>

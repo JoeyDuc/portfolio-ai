@@ -188,8 +188,8 @@ export default function Certifications() {
               Continuously Learning
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-              I am actively pursuing additional certifications in Deep Learning, NLP, and MLOps
-              to stay at the forefront of the AI/ML field.
+              I am expanding my knowledge of software engineering, Data Science, and AI
+              through coursework, research exploration, and projects.
             </p>
           </div>
         </motion.div>

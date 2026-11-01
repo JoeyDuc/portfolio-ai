@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import { EXPERIENCE, CERTIFICATIONS, ACHIEVEMENTS } from './data/portfolioData';
 
 // Lazy load below-fold sections
 const About = lazy(() => import('./components/About'));
@@ -137,7 +138,7 @@ export default function App() {
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
-          <Experience />
+          {EXPERIENCE.length > 0 && <Experience />}
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
@@ -145,11 +146,11 @@ export default function App() {
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
-          <Certifications />
+          {CERTIFICATIONS.length > 0 && <Certifications />}
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>
-          <Achievements />
+          {ACHIEVEMENTS.length > 0 && <Achievements />}
         </Suspense>
 
         <Suspense fallback={<SectionLoader />}>

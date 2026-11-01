@@ -1,15 +1,6 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useScrollReveal } from '../hooks/useAnimations';
 import { PROJECTS } from '../data/portfolioData';
-
-const ExternalLinkIcon = () => (
-  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-    <polyline points="15 3 21 3 21 9"/>
-    <line x1="10" y1="14" x2="21" y2="3"/>
-  </svg>
-);
 
 const GithubIcon = () => (
   <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24">
@@ -42,6 +33,7 @@ function ProjectCard({ project, index }) {
       {/* Visual header */}
       <div style={{
         height: '180px',
+        flexShrink: 0,
         background: GRADIENT_MAP[project.gradient] || 'linear-gradient(135deg, #2563eb, #06b6d4)',
         position: 'relative',
         overflow: 'hidden',
@@ -65,11 +57,12 @@ function ProjectCard({ project, index }) {
           bottom: '-40px', left: '-30px',
         }} />
 
-        {/* Accuracy badge */}
+        {/* Project status */}
         <div style={{
           position: 'absolute',
           top: '12px',
           left: '12px',
+          zIndex: 2,
           padding: '0.3rem 0.7rem',
           background: 'rgba(0,0,0,0.35)',
           backdropFilter: 'blur(8px)',
@@ -81,18 +74,37 @@ function ProjectCard({ project, index }) {
           alignItems: 'center',
           gap: '0.3rem',
         }}>
-          🎯 {project.accuracy} Accuracy
+          {project.status}
         </div>
 
-        <span style={{ fontSize: '3.5rem', position: 'relative', zIndex: 1 }}>
-          {project.emoji}
-        </span>
+        {project.image ? (
+          <img
+            src={project.image}
+            alt={project.imageAlt}
+            loading="lazy"
+            decoding="async"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: project.imageFit || 'cover',
+              objectPosition: project.imagePosition || 'center',
+              zIndex: 0,
+            }}
+          />
+        ) : (
+          <span style={{ fontSize: '3.5rem', position: 'relative', zIndex: 1 }}>
+            {project.emoji}
+          </span>
+        )}
 
         {/* Category badge */}
         <span style={{
           position: 'absolute',
-          top: '12px',
+          bottom: '12px',
           right: '12px',
+          zIndex: 2,
           padding: '0.25rem 0.65rem',
           background: 'rgba(0,0,0,0.3)',
           backdropFilter: 'blur(8px)',
@@ -106,7 +118,7 @@ function ProjectCard({ project, index }) {
       </div>
 
       {/* Card content */}
-      <div style={{ padding: '1.5rem' }}>
+      <div className="project-card-body" style={{ padding: '1.5rem' }}>
         <h3 style={{
           fontSize: '1.05rem',
           fontWeight: '800',
@@ -124,7 +136,7 @@ function ProjectCard({ project, index }) {
           {project.description}
         </p>
 
-        {/* Achievements */}
+        {/* Technical focus */}
         <div style={{ marginBottom: '1rem' }}>
           <p style={{
             fontSize: '0.72rem',
@@ -134,10 +146,10 @@ function ProjectCard({ project, index }) {
             letterSpacing: '0.07em',
             marginBottom: '0.5rem',
           }}>
-            Key Achievements
+            {project.highlightsLabel || 'Technical focus'}
           </p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            {project.achievements.map((ach, i) => (
+            {project.highlights.map((highlight, i) => (
               <li key={i} style={{
                 display: 'flex',
                 gap: '0.5rem',
@@ -159,42 +171,38 @@ function ProjectCard({ project, index }) {
                 }}>
                   <CheckIcon />
                 </span>
-                {ach}
+                {highlight}
               </li>
             ))}
           </ul>
         </div>
 
         {/* Tech stack */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1.25rem' }}>
+        {project.techLabel && (
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '0.5rem' }}>{project.techLabel}</p>
+        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
           {project.tech.map((t) => (
             <span key={t} className="tech-badge" style={{ fontSize: '0.7rem' }}>{t}</span>
           ))}
         </div>
 
-        {/* Links */}
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <a
-            href={project.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary"
-            style={{ fontSize: '0.78rem', padding: '0.5rem 1rem', flex: 1, justifyContent: 'center', textDecoration: 'none' }}
-            aria-label={`View GitHub code for ${project.title}`}
-          >
-            <GithubIcon />
-            GitHub Repo
-          </a>
-          <a
-            href={project.liveUrl}
-            className="btn-outline"
-            style={{ fontSize: '0.78rem', padding: '0.5rem 1rem', flex: 1, justifyContent: 'center', textDecoration: 'none' }}
-            aria-label={`View live demo of ${project.title}`}
-          >
-            <ExternalLinkIcon />
-            Live Demo
-          </a>
-        </div>
+        {/* Show only a supplied repository, with its ownership made explicit. */}
+        {(project.githubUrl || project.sourceUrl) && (
+          <div className="project-card-footer" style={{ display: 'flex', gap: '0.75rem' }}>
+            <a
+              href={project.githubUrl || project.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary github-button"
+              style={{ fontSize: '0.78rem', padding: '0.5rem 1rem', flex: 1, justifyContent: 'center', textDecoration: 'none' }}
+              aria-label={`${project.repositoryLabel} for ${project.title}`}
+            >
+              <GithubIcon />
+              {project.repositoryLabel}
+            </a>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -231,7 +239,7 @@ export default function Projects() {
             lineHeight: '1.1',
             marginTop: '0.75rem',
           }}>
-            AI/ML{' '}
+            Selected{' '}
             <span className="gradient-text">Projects</span>
           </h2>
           <p style={{
@@ -241,50 +249,21 @@ export default function Projects() {
             maxWidth: '520px',
             margin: '1rem auto 0',
           }}>
-            Real-world machine learning projects built with industry-standard tools and pipelines.
+            Projects in AI and Machine Learning, Internet of Things, and Software Engineering.
           </p>
         </div>
 
         {/* Projects Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))',
+          alignItems: 'stretch',
           gap: '2rem',
         }}>
           {PROJECTS.map((project, i) => (
             <ProjectCard key={project.id} project={project} index={i} />
           ))}
         </div>
-
-        {/* GitHub CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          style={{
-            textAlign: 'center',
-            marginTop: '3rem',
-            padding: '2rem',
-            borderRadius: '16px',
-            border: '1px solid var(--glass-border)',
-            background: 'var(--bg-card)',
-          }}
-        >
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.95rem' }}>
-            Want to see more of my work?
-          </p>
-          <a
-            href="https://github.com/asadrealone"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary"
-            style={{ textDecoration: 'none', display: 'inline-flex' }}
-          >
-            <GithubIcon />
-            View All Projects on GitHub
-          </a>
-        </motion.div>
 
       </div>
     </section>

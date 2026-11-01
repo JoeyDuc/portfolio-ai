@@ -144,8 +144,8 @@ export default function Achievements() {
               🤖 AI/ML Focus
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.7' }}>
-              Specialized in building end-to-end machine learning pipelines —
-              from data preprocessing to model evaluation and deployment preparation.
+              Exploring machine learning, deep learning, computer vision,
+              and natural language processing through coursework and academic studies.
             </p>
           </div>
           <div>
@@ -153,8 +153,8 @@ export default function Achievements() {
               📚 Academic Excellence
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.7' }}>
-              Maintaining a 3.75 CGPA while simultaneously completing
-              real-world AI/ML projects and an internship at Built &amp; Soft.
+              Studying Information Technology at PTIT with a GPA of 3.51/4.00
+              and a foundation in software engineering.
             </p>
           </div>
         </div>

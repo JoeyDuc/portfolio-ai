@@ -8,31 +8,9 @@
 
 import { motion } from 'framer-motion';
 import { useTypingEffect } from '../hooks/useAnimations';
-import { HERO_TYPING_TEXTS, HERO_DATA } from '../data/portfolioData';
+import { HERO_TYPING_TEXTS, HERO_DATA, PERSONAL } from '../data/portfolioData';
 
 // ── Icons ────────────────────────────────────────
-const DownloadIcon = () => (
-  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </svg>
-);
-
-const MailIcon = () => (
-  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-    <polyline points="22,6 12,13 2,6"/>
-  </svg>
-);
-
 const FolderIcon = () => (
   <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
@@ -113,8 +91,8 @@ function HeroPhoto() {
       className="hero-photo-inner"
       >
         <img
-          src="/Asad Pic.jpeg"
-          alt="Asad Ali – Aspiring AI/ML Engineer"
+          src="/duc.jpg"
+          alt={`${HERO_DATA.name} — Software Developer`}
           loading="eager"
           decoding="async"
           fetchPriority="high"
@@ -129,7 +107,7 @@ function HeroPhoto() {
         />
       </div>
 
-      {/* Floating badge – "Available" */}
+      {/* Floating student status badge */}
       <motion.div
         animate={{ y: [0, -5, 0] }}
         transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
@@ -158,7 +136,7 @@ function HeroPhoto() {
           boxShadow: '0 0 6px #22c55e',
           animation: 'pulse-glow-green 2s ease-in-out infinite',
         }} />
-        Available
+        Undergraduate
       </motion.div>
 
     </motion.div>
@@ -211,7 +189,7 @@ export default function Hero() {
                 display: 'inline-block',
                 animation: 'pulse-glow-green 2s ease-in-out infinite',
               }} />
-              Open to AI/ML Opportunities
+              {PERSONAL.shortTitle}
             </span>
           </motion.div>
 
@@ -226,7 +204,7 @@ export default function Hero() {
               letterSpacing: '-0.02em',
             }}>
               <span style={{ color: 'var(--text-primary)' }}>Hi, I'm{' '}</span>
-              <span className="gradient-text">Asad Ali</span>
+              <span className="gradient-text">{HERO_DATA.name}</span>
             </h1>
           </motion.div>
 
@@ -288,38 +266,14 @@ export default function Hero() {
               id="hero-view-projects-btn"
             >
               <FolderIcon />
-              View Projects
+              {HERO_DATA.primaryCTA}
             </button>
-            <a
-              href="/Asad_Ali_AI_ML_Resume.pdf"
-              download="Asad_Ali_AI_ML_Resume.pdf"
-              className="btn-outline"
-              id="hero-download-resume-btn"
-              style={{ textDecoration: 'none' }}
-              aria-label="Download Asad Ali AI/ML Resume PDF"
-            >
-              <DownloadIcon />
-              Download Resume
-            </a>
-            <a
-              href="/Asad_Ali_AI_ML_Resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-ghost"
-              id="hero-view-resume-btn"
-              style={{ textDecoration: 'none' }}
-              aria-label="View Asad Ali AI/ML Resume in browser"
-            >
-              <EyeIcon />
-              View Resume
-            </a>
             <button
-              className="btn-ghost"
-              onClick={() => scrollTo('contact')}
-              id="hero-contact-btn"
+              className="btn-outline"
+              onClick={() => scrollTo('about')}
+              id="hero-about-btn"
             >
-              <MailIcon />
-              Contact Me
+              {HERO_DATA.secondaryCTA}
             </button>
           </motion.div>
 
@@ -334,12 +288,7 @@ export default function Hero() {
             }}
             className="hero-stats-grid"
           >
-            {[
-              { value: '2+',   label: 'ML Projects' },
-              { value: '4mo',  label: 'Internship'  },
-              { value: '85%+', label: 'Accuracy'    },
-              { value: '3.75', label: 'CGPA'        },
-            ].map((stat) => (
+            {HERO_DATA.stats.map((stat) => (
               <div key={stat.label} className="hero-stat-card">
                 <div className="hero-stat-value">{stat.value}</div>
                 <div className="hero-stat-label">{stat.label}</div>

@@ -1,5 +1,5 @@
 import { useScrollReveal } from '../hooks/useAnimations';
-import { ABOUT_BIO_PARAGRAPHS, ABOUT_INTERESTS, EDUCATION } from '../data/portfolioData';
+import { ABOUT_BIO_PARAGRAPHS, ABOUT_INTERESTS, EDUCATION, PERSONAL } from '../data/portfolioData';
 import { motion } from 'framer-motion';
 
 const UserIcon = () => (
@@ -13,12 +13,6 @@ const AcademicIcon = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
     <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-  </svg>
-);
-
-const StarIcon = () => (
-  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
   </svg>
 );
 
@@ -50,15 +44,15 @@ export default function About() {
             lineHeight: '1.1',
             marginTop: '0.75rem',
           }}>
-            Passionate About{' '}
-            <span className="gradient-text">Artificial Intelligence</span>
+            From Software to{' '}
+            <span className="gradient-text">Intelligent Systems</span>
           </h2>
         </div>
 
         {/* Two-column: Bio + Education */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
           gap: '3rem',
           alignItems: 'start',
         }}>
@@ -89,7 +83,7 @@ export default function About() {
               marginBottom: '1.25rem',
               color: 'var(--text-primary)',
             }}>
-              Asad Ali
+              {PERSONAL.displayName}
             </h3>
 
             {ABOUT_BIO_PARAGRAPHS.map((para, i) => (
@@ -145,7 +139,7 @@ export default function About() {
                 boxShadow: '0 0 8px #22c55e',
                 animation: 'pulse-glow 2s ease-in-out infinite',
               }} />
-              Open to AI/ML internships & opportunities
+              Exploring Data Science & AI
             </div>
           </div>
 
@@ -219,6 +213,9 @@ export default function About() {
                     }}>
                       {edu.institution}
                     </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                      Faculty: {edu.faculty} · Classification: {edu.classification}
+                    </p>
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                       <span style={{
                         display: 'inline-flex',
@@ -232,7 +229,7 @@ export default function About() {
                         fontWeight: '600',
                         color: 'var(--neon-blue)',
                       }}>
-                        📅 {edu.duration}
+                        {edu.status}
                       </span>
                       <span style={{
                         display: 'inline-flex',
@@ -246,10 +243,18 @@ export default function About() {
                         fontWeight: '600',
                         color: '#facc15',
                       }}>
-                        ⭐ CGPA: {edu.cgpa}
+                        GPA: {edu.gpa}
                       </span>
                     </div>
                   </div>
+                </div>
+                <p style={{ fontSize: '0.8rem', fontWeight: '700', marginTop: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-muted)' }}>
+                  Relevant Coursework
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {edu.coursework.map((course) => (
+                    <span key={course} className="tech-badge" style={{ fontSize: '0.7rem' }}>{course}</span>
+                  ))}
                 </div>
               </motion.div>
             ))}
@@ -267,10 +272,10 @@ export default function About() {
                 Quick Highlights
               </p>
               {[
-                { icon: '📍', text: 'Based in Bahawalpur, Pakistan' },
-                { icon: '🎯', text: 'Focused on AI/ML Engineering' },
-                { icon: '📚', text: 'Currently a CS undergraduate (2024–2028)' },
-                { icon: '💡', text: 'Hands-on project experience in ML pipelines' },
+                { icon: '📍', text: `Based in ${PERSONAL.location}` },
+                { icon: '🎯', text: 'Direction: Data Science & Artificial Intelligence' },
+                { icon: '📚', text: 'Information Technology undergraduate at PTIT' },
+                { icon: '💡', text: 'Foundation in software engineering and networking' },
               ].map((fact, i) => (
                 <div key={i} style={{
                   display: 'flex',

@@ -1,4 +1,4 @@
-import { NAV_LINKS, SOCIAL_LINKS } from '../data/portfolioData';
+import { NAV_LINKS, SOCIAL_LINKS, FOOTER_DATA, PERSONAL } from '../data/portfolioData';
 
 const ICONS = {
   github: (
@@ -57,10 +57,10 @@ export default function Footer() {
               backgroundClip: 'text',
               marginBottom: '0.75rem',
             }}>
-              Asad Ali
+              {FOOTER_DATA.name}
             </div>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.7', maxWidth: '220px', marginBottom: '1rem' }}>
-              Aspiring AI/ML Engineer. Building intelligent systems with Machine Learning and Data Science.
+              {FOOTER_DATA.tagline}
             </p>
             {/* Status dot */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#4ade80' }}>
@@ -69,7 +69,7 @@ export default function Footer() {
                 borderRadius: '50%', background: '#22c55e',
                 boxShadow: '0 0 6px #22c55e',
               }} />
-              Open to Opportunities
+              {PERSONAL.status}
             </div>
           </div>
 
@@ -98,43 +98,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h4 style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Contact
-            </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {[
-                { icon: '📧', label: 'asadrealone@gmail.com', href: 'mailto:asadrealone@gmail.com' },
-                { icon: '📱', label: '+92 307 7546633', href: 'tel:+923077546633' },
-                { icon: '🔗', label: 'linkedin.com/in/asadrealone', href: 'https://linkedin.com/in/asadrealone' },
-              ].map((item) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    target={item.href.startsWith('http') ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                    style={{
-                      color: 'var(--text-muted)', fontSize: '0.82rem',
-                      textDecoration: 'none', display: 'flex',
-                      alignItems: 'center', gap: '0.4rem',
-                      transition: 'color 0.2s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-cyan)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                  >
-                    <span>{item.icon}</span>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.label}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Social */}
-          <div>
+          {/* Social links stay hidden until verified. */}
+          {SOCIAL_LINKS.length > 0 && <div>
             <h4 style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Connect
             </h4>
@@ -152,7 +117,7 @@ export default function Footer() {
                 </a>
               ))}
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* Bottom row */}
@@ -166,7 +131,7 @@ export default function Footer() {
           gap: '0.75rem',
         }}>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-            © {year} <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>Asad Ali</span> – Aspiring AI/ML Engineer. All rights reserved.
+            © {year} <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>{FOOTER_DATA.name}</span>. All rights reserved.
           </p>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
             Built with <span style={{ color: '#f87171' }}>♥</span> using React + Vite + Framer Motion

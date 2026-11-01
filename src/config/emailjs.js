@@ -1,35 +1,13 @@
-/**
- * EmailJS Configuration
- * ─────────────────────────────────────────────────
- * Set these in your .env file (copy from .env.example):
- *
- *   VITE_EMAILJS_SERVICE_ID=service_xxxxxxx
- *   VITE_EMAILJS_TEMPLATE_ID=template_xxxxxxx
- *   VITE_EMAILJS_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxxxx
- *
- * Steps to get these values:
- *  1. Create account at https://www.emailjs.com/
- *  2. Add an Email Service (Gmail / Outlook / etc.)
- *  3. Create an Email Template with variables:
- *       {{from_name}}, {{from_email}}, {{subject}}, {{message}}
- *  4. Copy your Service ID, Template ID, and Public Key here.
- * ─────────────────────────────────────────────────
- */
-
+// Only publishable EmailJS identifiers belong in this frontend configuration.
+// Keep the recipient fixed in the provider template; see docs/contact-setup.md.
 export const EMAILJS_CONFIG = {
-  serviceId:  import.meta.env.VITE_EMAILJS_SERVICE_ID  || '',
-  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '',
-  publicKey:  import.meta.env.VITE_EMAILJS_PUBLIC_KEY  || '',
+  serviceId: (import.meta.env.VITE_EMAILJS_SERVICE_ID || '').trim(),
+  templateId: (import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '').trim(),
+  publicKey: (import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '').trim(),
 };
 
-/**
- * Validates that all required EmailJS credentials are present.
- * Returns false in development when credentials are not yet configured.
- */
+export const PUBLIC_CONTACT_EMAIL = (import.meta.env.VITE_CONTACT_EMAIL || '').trim();
+
 export function isEmailJSConfigured() {
-  return (
-    Boolean(EMAILJS_CONFIG.serviceId) &&
-    Boolean(EMAILJS_CONFIG.templateId) &&
-    Boolean(EMAILJS_CONFIG.publicKey)
-  );
+  return Boolean(EMAILJS_CONFIG.serviceId && EMAILJS_CONFIG.templateId && EMAILJS_CONFIG.publicKey);
 }

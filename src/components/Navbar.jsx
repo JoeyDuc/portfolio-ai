@@ -1,16 +1,7 @@
-/**
- * Navbar
- * – Logo: "ASAD" (gradient)
- * – Desktop: nav links + theme toggle + Resume button
- * – Mobile: hamburger opens full-screen overlay with links + theme toggle
- * – Theme toggle is ALWAYS visible (desktop top-right, mobile inside menu)
- * – Instagram + GitHub + LinkedIn social icons in mobile footer
- */
-
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavScroll } from '../hooks/useAnimations';
-import { NAV_LINKS } from '../data/portfolioData';
+import { NAV_LINKS, PERSONAL } from '../data/portfolioData';
 
 // ── Icons ────────────────────────────────────────
 const MoonIcon = () => (
@@ -40,14 +31,6 @@ const XIcon = () => (
     <line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
-const DownloadIcon = () => (
-  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
-
 // ── Mobile menu animation ────────────────────────
 const menuVariants = {
   hidden:  { opacity: 0, y: -10 },
@@ -118,7 +101,7 @@ export default function Navbar({ isDark, onToggleTheme }) {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '68px' }}>
 
-            {/* Logo — "ASAD" */}
+            {/* Personal wordmark */}
             <button
               onClick={() => scrollTo('hero')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
@@ -134,12 +117,12 @@ export default function Navbar({ isDark, onToggleTheme }) {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
               }}>
-                ASAD
+                {PERSONAL.displayName.toUpperCase()}
               </span>
             </button>
 
             {/* Desktop nav links */}
-            <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.125rem' }}>
+            <div className="desktop-nav" style={{ alignItems: 'center', gap: '0.125rem' }}>
               {NAV_LINKS.map((link) => (
                 <button
                   key={link.id}
@@ -187,25 +170,12 @@ export default function Navbar({ isDark, onToggleTheme }) {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Resume — desktop only */}
-              <a
-                href="/Asad_Ali_AI_ML_Resume.pdf"
-                download="Asad_Ali_AI_ML_Resume.pdf"
-                className="btn-primary desktop-only"
-                style={{ padding: '0.45rem 1.1rem', fontSize: '0.82rem', gap: '0.4rem', textDecoration: 'none', flexShrink: 0 }}
-                aria-label="Download Resume"
-              >
-                <DownloadIcon />
-                Resume
-              </a>
-
               {/* Hamburger — mobile only */}
               <motion.button
                 onClick={() => setMenuOpen((o) => !o)}
                 whileTap={{ scale: 0.9 }}
                 className="mobile-only"
                 style={{
-                  display: 'none',
                   alignItems: 'center', justifyContent: 'center',
                   background: menuOpen ? 'rgba(37,99,235,0.15)' : 'var(--bg-card)',
                   border: `1px solid ${menuOpen ? 'rgba(37,99,235,0.45)' : 'var(--glass-border)'}`,
@@ -389,64 +359,6 @@ export default function Navbar({ isDark, onToggleTheme }) {
                   </button>
                 </motion.div>
 
-                {/* Download Resume */}
-                <motion.a
-                  custom={NAV_LINKS.length + 1}
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  href="/Asad_Ali_AI_ML_Resume.pdf"
-                  download="Asad_Ali_AI_ML_Resume.pdf"
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: '0.5rem',
-                    width: '100%',
-                    padding: '0.9rem',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #2563eb, #06b6d4)',
-                    color: 'white', fontWeight: '700', fontSize: '0.95rem',
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 20px rgba(37,99,235,0.35)',
-                  }}
-                >
-                  <DownloadIcon />
-                  Download Resume
-                </motion.a>
-
-                {/* Social links */}
-                <motion.div
-                  custom={NAV_LINKS.length + 2}
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  style={{ marginTop: '1.25rem', display: 'flex', gap: '0.6rem', justifyContent: 'center' }}
-                >
-                  {[
-                    { label: 'GitHub',    href: 'https://github.com/asadrealone',    color: '#e2e8f0' },
-                    { label: 'LinkedIn',  href: 'https://linkedin.com/in/asadrealone', color: '#60a5fa' },
-                    { label: 'Instagram', href: 'https://instagram.com/asadrealone', color: '#f472b6' },
-                  ].map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        padding: '0.45rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(148,163,184,0.12)',
-                        color: s.color,
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        textDecoration: 'none',
-                        transition: 'background 0.2s',
-                      }}
-                    >
-                      {s.label}
-                    </a>
-                  ))}
-                </motion.div>
               </div>
             </motion.div>
           </>
